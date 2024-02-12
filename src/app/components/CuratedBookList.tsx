@@ -1,7 +1,7 @@
 "use client";
 
 import useSWR from "swr";
-import { Book } from "../types";
+import { Author, Book } from "../types";
 
 interface Props {
 	author: string;
@@ -9,6 +9,7 @@ interface Props {
 
 interface CuratedBooksResponse {
 	books: Book[];
+	authors: Author[];
 }
 
 export function CuratedBookList({ author }: Props) {
@@ -21,13 +22,26 @@ export function CuratedBookList({ author }: Props) {
 	if (error) return <span>Error!</span>;
 	if (!data) return <span>Not found</span>;
 
+	const authorById: { [key: number]: Author } = {};
+	// biome-ignore lint/complexity/noForEach: Leave me alone!
+	(data?.authors ?? []).forEach((author) => {
+		authorById[author.id] = author;
+	});
+
 	return (
-		<div>
-			<h2>{author}</h2>
+		<div className="rounded bg-gradient-to-r p-4 from-violet-500 to-fuchsia-500 text-white">
+			<h2 className="text-xl underline pb-2">This Month’s Selection</h2>
 			{
 				<ul>
 					{data.books.map((book) => {
-						return <li key={book.id}>{book.title}</li>;
+						return (
+							<li key={book.id}>
+								{book.title}{" "}
+								{book.author
+									? `by ${authorById[book.author.id]?.name ?? ""}`
+									: ""}
+							</li>
+						);
 					})}
 				</ul>
 			}
