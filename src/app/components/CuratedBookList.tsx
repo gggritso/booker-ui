@@ -1,3 +1,6 @@
+"use client";
+
+import useSWR from "swr";
 import { Book } from "../types";
 
 interface Props {
@@ -8,8 +11,15 @@ interface CuratedBooksResponse {
 	books: Book[];
 }
 
-export async function CuratedBookList({ author }: Props) {
-	const data = await loadCuratedBooks(author);
+export function CuratedBookList({ author }: Props) {
+	const { data, error, isLoading } = useSWR<CuratedBooksResponse>(
+		`${process.env.NEXT_PUBLIC_API_HOST}/books/by_author/?name=${author}`,
+		fetcher,
+	);
+
+	if (isLoading) return <span>Loading</span>;
+	if (error) return <span>Error!</span>;
+	if (!data) return <span>Not found</span>;
 
 	return (
 		<div>
@@ -25,14 +35,4 @@ export async function CuratedBookList({ author }: Props) {
 	);
 }
 
-async function loadCuratedBooks(author: string): Promise<CuratedBooksResponse> {
-	const res = await fetch(
-		`${process.env.API_HOST}/books/by_author/?name=${author}`,
-	);
-
-	if (!res.ok) {
-		throw new Error("Failed to fetch data");
-	}
-
-	return res.json();
-}
+const fetcher = (url: string) => fetch(url).then((res) => res.json());

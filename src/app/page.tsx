@@ -1,3 +1,5 @@
+"use client";
+
 import { CuratedBookList } from "./components/CuratedBookList";
 
 export default function Home() {
