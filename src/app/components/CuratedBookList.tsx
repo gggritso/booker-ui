@@ -1,7 +1,10 @@
 "use client";
 
+import * as Sentry from "@sentry/react";
+
 import useSWR from "swr";
 import { Author, Book } from "../types";
+import { useEffect } from "react";
 
 interface Props {
 	author: string;
@@ -17,6 +20,10 @@ export function CuratedBookList({ author }: Props) {
 		`${process.env.NEXT_PUBLIC_API_HOST}/books/by_author/?name=${author}`,
 		fetcher,
 	);
+
+	useEffect(() => {
+		if (data) logData();
+	}, [data]);
 
 	if (isLoading) return <span>Loading</span>;
 	if (error) return <span>Error!</span>;
@@ -47,6 +54,15 @@ export function CuratedBookList({ author }: Props) {
 			}
 		</div>
 	);
+}
+
+function logData() {
+	Sentry.startSpanManual({ op: "function", name: "processData" }, (span) => {
+		setTimeout(() => {
+			span?.setAttribute("data", true);
+			span?.end();
+		}, 200);
+	});
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
